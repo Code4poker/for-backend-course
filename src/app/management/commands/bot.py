@@ -87,9 +87,26 @@ async def recording_information(message: types.Message, state: FSMContext):
                                                 f"Дата рождения: {date_of_birth}")
 
 
-# @dp.message_handler(state="*", commands="endpoint_me")
-# async def processing_endpoint_me_command(message: types.Message, state: FSMContext):
-#     await bot.send_message(message.chat.id, )
+@dp.message_handler(state=Condition.write_in_db, commands="endpoint_me")
+async def processing_endpoint_me_command(message: types.Message, state: FSMContext):
+    data = await state.get_data()
+    try:
+        name = data.get("user_name_surname")[0]
+        surname = data.get("user_name_surname")[1]
+        phone_number = data.get("user_phone")
+        email = data.get("user_email")
+        date_of_birth = data.get("user_date_of_birth")
+    except TypeError:
+        await bot.send_message(message.chat.id, "Упс... Похоже у нас нехватает данных о вас.\n"
+                                                "Вызовите команду /start для ввода личных данных\n"
+                                                "Или команду /set_phone для ввода номера телефона")
+        await Condition.next()
+    else:
+        await make_user(name, surname, email, date_of_birth)
+        await bot.send_message(message.chat.id, f"Имя и фамилия: {name} {surname}\n"
+                                                f"Email: {email}\n"
+                                                f"Номер телефона: {phone_number}\n"
+                                                f"Дата рождения: {date_of_birth}")
 
 
 class Command(BaseCommand):
